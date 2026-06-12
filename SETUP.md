@@ -33,6 +33,26 @@ Open `Launch-AmtechAlternateSftp.ps1` and update the editable settings near the 
 
 The launcher contains the most common hand-edit points for a new site.
 
+## What Each Site Must Customize
+
+Use placeholder values in Git and put real deployment values only in the local
+copy that will run the job.
+
+| Setting | Purpose | Safe example |
+| --- | --- | --- |
+| `SourceRoot` | Folder where the middleware leaves final send-ready `.dat` files. | `\\fileserver\share\edi\outbound` |
+| `RemoteUsername` | SFTP login name. Can be set directly or through `AMTECH_ALTERNATE_SFTP_USERNAME`. | `edi_upload_user` |
+| `RemoteHost` | Partner or gateway SFTP host. | `sftp.partner.example` |
+| `RemoteDir` | Remote folder where files should be uploaded. | `/incoming` |
+| `SftpPort` | SFTP port supplied by the partner or gateway. | `22` |
+| `PasswordFile` | Local encrypted Windows credential cache. | `%LOCALAPPDATA%\AmtechAlternateSftp\amtech_alternate_sftp_password.xml` |
+| `PasswordEnvVar` | Environment variable read by the launcher for the SFTP password. | `AMTECH_ALTERNATE_SFTP_PASSWORD` |
+| `TrustNewHostKey` | Emergency-only option for first connection to an untrusted host key. | `$false` |
+
+Do not point `SourceRoot` at a middleware working folder that still contains
+`.cov` files. This bundle sends only final `.dat` files and archives them as
+`.bak` after a successful upload.
+
 ## Configure Credentials
 
 Either:
@@ -43,6 +63,10 @@ Either:
 If the username is not already set in the launcher, set `AMTECH_ALTERNATE_SFTP_USERNAME` in the current session as well.
 
 The repository should not contain the cleartext password.
+
+Do not store Pushbullet, Pushover, API-token, SFTP, or other alerting credentials
+in this repository. If a local deployment adds notifications, keep those secrets
+outside Git and document only the environment variable names.
 
 ## Host Key Verification
 
@@ -65,3 +89,16 @@ The defaults register runs at:
 - 4:10 PM
 
 Edit the task names, launcher path, or end date inside that script if needed.
+
+## First-Run Checklist
+
+1. Install Python and run `python -m pip install -r requirements.txt`.
+2. Edit `Launch-AmtechAlternateSftp.ps1` with site-specific source and SFTP settings.
+3. Confirm the source folder contains final `.dat` files, not upstream `.cov` files.
+4. Set the username and password locally through environment variables or the encrypted password file.
+5. Run `.\Launch-AmtechAlternateSftp.ps1 -StageOnly`.
+6. Review `staging` and `logs` to confirm the expected files are selected.
+7. Test against a non-production SFTP target if one is available.
+8. Run the normal launcher once under supervision.
+9. Register scheduled tasks only after manual testing is clean.
+10. Review the repo with `git status` and do not commit credentials, logs, or site-specific secrets.

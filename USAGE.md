@@ -42,4 +42,7 @@ If a new site needs a different source share, SFTP host, or remote directory, ed
 
 If you only need to update the schedule or the launcher path, edit `Register-AmtechAlternateSftpTasks.ps1`.
 
+Do not put real SFTP passwords, Pushbullet tokens, Pushover tokens, or API keys
+in the repo. Use local environment variables or a local encrypted password file.
+
 Read `DISCLAIMER.md` before treating the bundle as anything other than a temporary operational copy.
