@@ -19,7 +19,7 @@ See `DISCLAIMER.md` for the use-at-your-own-risk and backup-your-data notice.
 ## File Types
 
 - Send-ready files are `.dat` files in the configured source root.
-- Current-mode uploads are limited to `EDIPOH.dat`, `EDIPOD.dat`, and `EDIITEM.dat`.
+- Current-mode stages every root-level `.dat` file in the configured source root.
 - Historical/archive files are `.bak` files under the source root's `Backup` folder.
 - `.cov` files are not used by this bundle as SFTP send inputs.
 

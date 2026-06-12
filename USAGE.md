@@ -17,7 +17,8 @@ That command:
 
 The bundle intentionally ignores `.cov` files. If upstream middleware creates both
 `.cov` and `.dat` artifacts, point `SourceRoot` at the folder containing the final
-send-ready `EDIPOH.dat`, `EDIPOD.dat`, and `EDIITEM.dat` files.
+send-ready `.dat` files. Current-mode sends every root-level `.dat` file in that
+folder.
 
 ## Stage-Only Run
 
