@@ -198,7 +198,12 @@ def normalize_source_root(path: Path) -> str:
 
 
 def current_sources(source_root: Path) -> list[Path]:
-    return sorted(path for path in source_root.glob("*.dat") if path.is_file())
+    expected_names = {f"{doc_type}.dat".lower() for doc_type in DOC_TYPES}
+    return sorted(
+        path
+        for path in source_root.glob("*.dat")
+        if path.is_file() and path.name.lower() in expected_names
+    )
 
 
 def backup_batch_key(path: Path) -> str | None:
@@ -639,7 +644,7 @@ def main() -> int:
         except Exception as exc:
             sftp_error = exc
             sftp_result = {
-                "target": target,
+                "target": mask_sftp_target(target),
                 "port": port or 22,
                 "remote_dir": remote_dir,
                 "uploaded_files": [],

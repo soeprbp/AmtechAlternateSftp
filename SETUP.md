@@ -9,8 +9,9 @@
 - Outbound network access to the SFTP host
 - Read `DISCLAIMER.md` before using the bundle on any real data
 
-The configured source folder should contain the send-ready `.dat` files. This
-bundle does not process `.cov` files.
+The configured source folder should contain the send-ready `EDIPOH.dat`,
+`EDIPOD.dat`, and `EDIITEM.dat` files. This bundle does not process `.cov`
+files.
 
 Install the Python dependency:
 
@@ -40,7 +41,7 @@ copy that will run the job.
 
 | Setting | Purpose | Safe example |
 | --- | --- | --- |
-| `SourceRoot` | Folder where the middleware leaves final send-ready `.dat` files. | `\\fileserver\share\edi\outbound` |
+| `SourceRoot` | Folder where the middleware leaves final send-ready `EDIPOH.dat`, `EDIPOD.dat`, and `EDIITEM.dat` files. | `\\fileserver\share\edi\outbound` |
 | `RemoteUsername` | SFTP login name. Can be set directly or through `AMTECH_ALTERNATE_SFTP_USERNAME`. | `edi_upload_user` |
 | `RemoteHost` | Partner or gateway SFTP host. | `sftp.partner.example` |
 | `RemoteDir` | Remote folder where files should be uploaded. | `/incoming` |
@@ -50,8 +51,8 @@ copy that will run the job.
 | `TrustNewHostKey` | Emergency-only option for first connection to an untrusted host key. | `$false` |
 
 Do not point `SourceRoot` at a middleware working folder that still contains
-`.cov` files. This bundle sends only final `.dat` files and archives them as
-`.bak` after a successful upload.
+`.cov` files. Current-mode sends only the expected final `.dat` files and
+archives them as `.bak` after a successful upload.
 
 ## Configure Credentials
 
@@ -94,7 +95,7 @@ Edit the task names, launcher path, or end date inside that script if needed.
 
 1. Install Python and run `python -m pip install -r requirements.txt`.
 2. Edit `Launch-AmtechAlternateSftp.ps1` with site-specific source and SFTP settings.
-3. Confirm the source folder contains final `.dat` files, not upstream `.cov` files.
+3. Confirm the source folder contains final `EDIPOH.dat`, `EDIPOD.dat`, and `EDIITEM.dat` files, not upstream `.cov` files.
 4. Set the username and password locally through environment variables or the encrypted password file.
 5. Run `.\Launch-AmtechAlternateSftp.ps1 -StageOnly`.
 6. Review `staging` and `logs` to confirm the expected files are selected.
