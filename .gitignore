@@ -1,0 +1,13 @@
+# Runtime output from the bundle
+staging/
+logs/
+*.jsonl
+amtech_alternate_sftp_*.json
+amtech_alternate_sftp_*.txt
+
+# Local Python caches
+__pycache__/
+*.py[cod]
+
+# Optional local credential cache if someone edits the password path into the repo
+*amtech_alternate_sftp_password.xml
