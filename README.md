@@ -19,7 +19,6 @@ See `DISCLAIMER.md` for the use-at-your-own-risk and backup-your-data notice.
 ## File Types
 
 - Send-ready files are `.dat` files in the configured source root.
-- Current-mode stages every root-level `.dat` file in the configured source root.
 - Historical/archive files are `.bak` files under the source root's `Backup` folder.
 - `.cov` files are not used by this bundle as SFTP send inputs.
 
@@ -38,25 +37,6 @@ See `DISCLAIMER.md` for the use-at-your-own-risk and backup-your-data notice.
 ## Quick Start
 
 Read `SETUP.md` first, then use `USAGE.md` for day-to-day operation.
-
-## Before You Distribute Or Deploy
-
-This repository is intentionally de-branded. Before using it at a new site, make
-these values local to that site and do not commit the real values back to Git:
-
-| Setting | Where to put it | Example placeholder |
-| --- | --- | --- |
-| Source folder containing final outbound files | `Launch-AmtechAlternateSftp.ps1` `SourceRoot` | `\\fileserver\share\edi\outbound` |
-| SFTP username | `RemoteUsername` or `AMTECH_ALTERNATE_SFTP_USERNAME` | `edi_upload_user` |
-| SFTP host | `RemoteHost` | `sftp.partner.example` |
-| SFTP remote folder | `RemoteDir` | `/incoming` |
-| SFTP port | `SftpPort` | `22` |
-| SFTP password | Local encrypted file or `AMTECH_ALTERNATE_SFTP_PASSWORD` | Do not commit |
-| Task schedule/name/end date | `Register-AmtechAlternateSftpTasks.ps1` | Site-specific |
-
-Do not include Pushbullet, Pushover, SFTP, API, or other alerting credentials in
-this repo. Keep them in environment variables, a local secret store, or a private
-deployment-only copy.
 
 ## Notes
 
