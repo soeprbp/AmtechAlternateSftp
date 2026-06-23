@@ -30,7 +30,7 @@ BUNDLE_ROOT = Path(__file__).resolve().parent
 DEFAULT_SOURCE_ROOT = Path(r"\\server\share\path\to\amtech\edi\outbound")
 DEFAULT_STAGING_ROOT = BUNDLE_ROOT / "staging"
 DEFAULT_LOG_DIR = BUNDLE_ROOT / "logs"
-DEFAULT_BACKUP_DOC_TYPES = ("DOC1", "DOC2", "DOC3")
+DOC_TYPES = ("EDIPOH", "EDIPOD", "EDIITEM")
 
 
 @dataclass
@@ -93,14 +93,6 @@ def parse_args() -> argparse.Namespace:
         help="With --mode backup-batch, stage the most recent complete backup batch.",
     )
     parser.add_argument(
-        "--backup-doc-types",
-        default=os.environ.get("AMTECH_ALTERNATE_SFTP_BACKUP_DOC_TYPES", ",".join(DEFAULT_BACKUP_DOC_TYPES)),
-        help=(
-            "Comma-separated backup document name prefixes used by backup-batch mode. "
-            "Edit this for each site if backup-batch mode is used."
-        ),
-    )
-    parser.add_argument(
         "--publish-root",
         help="Optional destination folder for a final copy. Use only with --write-share.",
     )
@@ -128,8 +120,8 @@ def parse_args() -> argparse.Namespace:
         "--archive-source-after-send",
         action="store_true",
         help=(
-            "After a successful SFTP send, move the staged root .dat files into the source Backup "
-            "folder as timestamped .bak files."
+            "After a successful SFTP send, move the root EDIPOH.dat, EDIPOD.dat, and EDIITEM.dat "
+            "files into the source Backup folder as timestamped .bak files."
         ),
     )
     parser.add_argument(
@@ -205,52 +197,42 @@ def normalize_source_root(path: Path) -> str:
     return str(path.resolve()).rstrip("\\/").lower()
 
 
-def parse_csv_values(raw_value: str) -> tuple[str, ...]:
-    return tuple(value.strip() for value in raw_value.split(",") if value.strip())
-
-
 def current_sources(source_root: Path) -> list[Path]:
     return sorted(path for path in source_root.glob("*.dat") if path.is_file())
 
 
-def backup_batch_key(path: Path, doc_types: tuple[str, ...]) -> str | None:
-    for doc_type in doc_types:
-        if not path.name.lower().startswith(doc_type.lower()) or path.suffix.lower() != ".bak":
-            continue
-        key = path.stem[len(doc_type):]
-        return key or None
-    return None
+def backup_batch_key(path: Path) -> str | None:
+    match = re.match(r"^(EDIPOH|EDIPOD|EDIITEM)(.+)\.bak$", path.name, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(2)
 
 
-def find_backup_batches(source_root: Path, doc_types: tuple[str, ...]) -> dict[str, dict[str, Path]]:
+def find_backup_batches(source_root: Path) -> dict[str, dict[str, Path]]:
     backup_root = source_root / "Backup"
     batches: dict[str, dict[str, Path]] = {}
     if not backup_root.exists():
         return batches
 
     for path in backup_root.glob("*.bak"):
-        key = backup_batch_key(path, doc_types)
+        key = backup_batch_key(path)
         if not key:
             continue
-        doc_type = next(
-            candidate
-            for candidate in doc_types
-            if path.name.lower().startswith(candidate.lower())
-        )
+        doc_type = path.name[: len(path.name) - len(key) - 4].upper()
         batches.setdefault(key, {})[doc_type] = path
     return batches
 
 
-def complete_batches(source_root: Path, doc_types: tuple[str, ...]) -> dict[str, dict[str, Path]]:
+def complete_batches(source_root: Path) -> dict[str, dict[str, Path]]:
     return {
         key: files
-        for key, files in find_backup_batches(source_root, doc_types).items()
-        if all(doc_type in files for doc_type in doc_types)
+        for key, files in find_backup_batches(source_root).items()
+        if all(doc_type in files for doc_type in DOC_TYPES)
     }
 
 
-def list_backup_batches(source_root: Path, doc_types: tuple[str, ...]) -> None:
-    batches = complete_batches(source_root, doc_types)
+def list_backup_batches(source_root: Path) -> None:
+    batches = complete_batches(source_root)
     print(f"Complete backup batches: {len(batches)}")
     for key, files in sorted(
         batches.items(),
@@ -259,17 +241,12 @@ def list_backup_batches(source_root: Path, doc_types: tuple[str, ...]) -> None:
     )[:50]:
         latest_mtime = max(path.stat().st_mtime for path in files.values())
         latest_time = datetime.fromtimestamp(latest_mtime).isoformat(timespec="seconds")
-        sizes = ", ".join(f"{doc_type}={files[doc_type].stat().st_size}" for doc_type in doc_types)
+        sizes = ", ".join(f"{doc_type}={files[doc_type].stat().st_size}" for doc_type in DOC_TYPES)
         print(f"{key} | {latest_time} | {sizes}")
 
 
-def select_backup_sources(
-    source_root: Path,
-    batch_key: str | None,
-    latest: bool,
-    doc_types: tuple[str, ...],
-) -> tuple[str, list[Path]]:
-    batches = complete_batches(source_root, doc_types)
+def select_backup_sources(source_root: Path, batch_key: str | None, latest: bool) -> tuple[str, list[Path]]:
+    batches = complete_batches(source_root)
     if not batches:
         raise RuntimeError(f"No complete backup batches found under {source_root / 'Backup'}")
 
@@ -279,7 +256,7 @@ def select_backup_sources(
             key=lambda key: max(path.stat().st_mtime for path in batches[key].values()),
         )
         selected = batches[selected_key]
-        return selected_key, [selected[doc_type] for doc_type in doc_types]
+        return selected_key, [selected[doc_type] for doc_type in DOC_TYPES]
 
     if not batch_key:
         raise RuntimeError("--batch-key is required unless --latest is used")
@@ -287,7 +264,7 @@ def select_backup_sources(
     selected = batches.get(batch_key)
     if selected is None:
         raise RuntimeError(f"Backup batch not found or incomplete: {batch_key}")
-    return batch_key, [selected[doc_type] for doc_type in doc_types]
+    return batch_key, [selected[doc_type] for doc_type in DOC_TYPES]
 
 
 def validate_sources(sources: list[Path]) -> None:
@@ -584,13 +561,12 @@ def main() -> int:
     source_root = Path(args.source_root)
     staging_root = Path(args.staging_root).resolve()
     log_dir = Path(args.log_dir).resolve()
-    backup_doc_types = parse_csv_values(args.backup_doc_types)
 
     if not source_root.exists():
         raise FileNotFoundError(f"Source root not found: {source_root}")
 
     if args.mode == "list-backups":
-        list_backup_batches(source_root, backup_doc_types)
+        list_backup_batches(source_root)
         return 0
 
     if args.archive_source_after_send:
@@ -603,7 +579,7 @@ def main() -> int:
     if args.mode == "current":
         sources = current_sources(source_root)
     else:
-        selected_batch_key, sources = select_backup_sources(source_root, args.batch_key, args.latest, backup_doc_types)
+        selected_batch_key, sources = select_backup_sources(source_root, args.batch_key, args.latest)
 
     validate_sources(sources)
 
@@ -663,7 +639,7 @@ def main() -> int:
         except Exception as exc:
             sftp_error = exc
             sftp_result = {
-                "target": mask_sftp_target(target),
+                "target": target,
                 "port": port or 22,
                 "remote_dir": remote_dir,
                 "uploaded_files": [],

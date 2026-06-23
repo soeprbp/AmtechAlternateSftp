@@ -17,8 +17,7 @@ That command:
 
 The bundle intentionally ignores `.cov` files. If upstream middleware creates both
 `.cov` and `.dat` artifacts, point `SourceRoot` at the folder containing the final
-send-ready `.dat` files. Current-mode sends every root-level `.dat` file in that
-folder.
+send-ready `.dat` files.
 
 ## Stage-Only Run
 
@@ -42,8 +41,5 @@ If a new site needs a different source share, SFTP host, or remote directory, ed
 `Launch-AmtechAlternateSftp.ps1` and, if needed, the task installer.
 
 If you only need to update the schedule or the launcher path, edit `Register-AmtechAlternateSftpTasks.ps1`.
-
-Do not put real SFTP passwords, Pushbullet tokens, Pushover tokens, or API keys
-in the repo. Use local environment variables or a local encrypted password file.
 
 Read `DISCLAIMER.md` before treating the bundle as anything other than a temporary operational copy.

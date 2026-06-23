@@ -2,9 +2,8 @@
 
 ## Secrets
 
-Do not commit SFTP usernames, passwords, private keys, Pushbullet tokens,
-Pushover tokens, API tokens, customer-specific connection details, or alerting
-credentials. Use environment variables, local encrypted password files, or
+Do not commit SFTP usernames, passwords, private keys, tokens, or customer-specific
+connection details. Use environment variables, local encrypted password files, or
 hand-edited local deployment copies.
 
 Expected environment variables:
@@ -15,10 +14,6 @@ Expected environment variables:
 - `AMTECH_ALTERNATE_SFTP_REMOTE_DIR`
 - `AMTECH_ALTERNATE_SFTP_PORT`
 - `AMTECH_ALTERNATE_SFTP_IDENTITY_FILE`
-
-If a site adds notifications, keep values such as `PUSHBULLET_ACCESS_TOKEN`,
-`PUSHOVER_APP_TOKEN`, and `PUSHOVER_USER_KEY` out of Git. Document the variable
-names only.
 
 ## Host Keys
 
